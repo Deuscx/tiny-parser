@@ -1,4 +1,8 @@
-import type { NumericLiteral, StringLiteral } from '@babel/types'
+import type {
+  ExpressionStatement,
+  NumericLiteral,
+  StringLiteral,
+} from '@babel/types'
 import { Tokenizer } from './tokenizer'
 /**
  * Letter parser
@@ -22,20 +26,62 @@ class Parser {
 
     // 有限自动机
     this._lookahead = this._tokenizer.getNextToken()
-
     return this.program()
   }
 
   /**
    *
    * Program
-   *  : Literal
+   *  : StatementList
    */
   program() {
     return {
       type: 'Program',
-      body: this.Literal(),
+      body: this.StatementList(),
     }
+  }
+
+  /**
+   * StatementList
+   *  : Statement
+   *  | Statement StatementList
+   * @returns
+   */
+  StatementList() {
+    const statements = []
+    while (this._lookahead !== null) statements.push(this.Statement())
+
+    return statements
+  }
+
+  /**
+   * Statement
+   *  : ExpressionStatement
+   *  ;
+   */
+  Statement() {
+    return this.ExpressionStatement()
+  }
+
+  /**
+   * ExpressionStatement
+   * : Expression ';'
+   */
+  ExpressionStatement(): ExpressionStatement {
+    const expression = this.Expression() as any
+    this._eat('semicolon')
+    return {
+      type: 'ExpressionStatement',
+      expression,
+    }
+  }
+
+  /**
+   * Expression
+   * : Literal
+   */
+  Expression() {
+    return this.Literal()
   }
 
   /**
@@ -52,8 +98,6 @@ class Parser {
         return this.NumericLiteral()
       case 'string':
         return this.StringLiteral()
-      default:
-        break
     }
   }
 
@@ -80,7 +124,7 @@ class Parser {
   private _eat(tokenType: string) {
     const token = this._lookahead
     if (token === null)
-      throw new Error('Unexpected end of input', tokenType)
+      throw new Error(`Unexpected end of input ${tokenType}`)
 
     if (token.type !== tokenType)
       throw new Error(`Unexpected token ${token.type}, expected ${tokenType}`)

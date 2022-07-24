@@ -7,6 +7,7 @@ const spec = {
   comments: [/^\/\/[^\r\n]*/, /^\/\*[\s\S]*?(?:\*\/|$)/],
   number: [/^\d+/],
   string: [/^"[^"]*"/, /^'[^']*'/],
+  semicolon: [/^;/],
 }
 
 export class Tokenizer {
@@ -35,7 +36,6 @@ export class Tokenizer {
         // skip
         if (['whitespace', 'comments'].includes(type))
           return this.getNextToken()
-
         return {
           type,
           value: tokenValue,
@@ -43,7 +43,7 @@ export class Tokenizer {
       }
     }
 
-    throw new Error(`Unexpected token: ${string[0]}`)
+    throw new Error(`Unexpected token: ${string}`)
   }
 
   _match(regex: RegExp, str: string) {

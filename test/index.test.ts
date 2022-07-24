@@ -3,13 +3,18 @@ import { Parser } from '../src'
 describe('should', () => {
   it('test string', () => {
     const parser = new Parser()
-    const program = '  100  '
+    const program = '  100;  '
     expect(parser.parse(program)).toMatchInlineSnapshot(`
       {
-        "body": {
-          "type": "NumericLiteral",
-          "value": 100,
-        },
+        "body": [
+          {
+            "expression": {
+              "type": "NumericLiteral",
+              "value": 100,
+            },
+            "type": "ExpressionStatement",
+          },
+        ],
         "type": "Program",
       }
     `)
@@ -22,14 +27,48 @@ describe('should', () => {
       /* 
       multiline comments
       */
-      100
+      100;
     `
     expect(parser.parse(program)).toMatchInlineSnapshot(`
       {
-        "body": {
-          "type": "NumericLiteral",
-          "value": 100,
-        },
+        "body": [
+          {
+            "expression": {
+              "type": "NumericLiteral",
+              "value": 100,
+            },
+            "type": "ExpressionStatement",
+          },
+        ],
+        "type": "Program",
+      }
+    `)
+  })
+
+  it('Statement', () => {
+    const parser = new Parser()
+    const program = `
+      100;
+      20;
+    `
+    expect(parser.parse(program)).toMatchInlineSnapshot(`
+      {
+        "body": [
+          {
+            "expression": {
+              "type": "NumericLiteral",
+              "value": 100,
+            },
+            "type": "ExpressionStatement",
+          },
+          {
+            "expression": {
+              "type": "NumericLiteral",
+              "value": 20,
+            },
+            "type": "ExpressionStatement",
+          },
+        ],
         "type": "Program",
       }
     `)
