@@ -44,6 +44,9 @@ class Parser {
    * | StringLiteral
    */
   Literal() {
+    if (this._lookahead === null)
+      return null
+
     switch (this._lookahead.type) {
       case 'number':
         return this.NumericLiteral()
