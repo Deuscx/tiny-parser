@@ -3,11 +3,14 @@ import { Parser } from '../src'
 describe('should', () => {
   it('exported', () => {
     const parser = new Parser()
-    const program = '42'
+    const program = '""100""'
     expect(parser.parse(program)).toMatchInlineSnapshot(`
       {
-        "type": "NumericLiteral",
-        "value": 42,
+        "body": {
+          "type": "StringLiteral",
+          "value": "",
+        },
+        "type": "Program",
       }
     `)
   })
