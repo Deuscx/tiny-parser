@@ -5,7 +5,74 @@ import type {
   NumericLiteral,
   StringLiteral,
 } from '@babel/types'
+import {
+  blockStatement,
+} from '@babel/types'
 import { Tokenizer } from './tokenizer'
+
+/**
+ * Default AST node type.
+ */
+const DefaultFactory = {
+  Program(body) {
+    return {
+      type: 'Program',
+      body,
+    }
+  },
+  EmptyStatement() {
+    return {
+      type: 'EmptyStatement',
+    }
+  },
+  BlockStatement(body) {
+    return {
+      type: 'BlockStatement',
+      body,
+    }
+  },
+  ExpressionStatement(expression) {
+    return {
+      type: 'ExpressionStatement',
+      expression,
+    }
+  },
+  NumericLiteral(value) {
+    return {
+      type: 'NumericLiteral',
+      value,
+    }
+  },
+  StringLiteral(value) {
+    return {
+      type: 'StringLiteral',
+      value,
+    }
+  },
+}
+
+const SExpressionFactory = {
+  Program(body) {
+    return ['begin', body]
+  },
+  EmptyStatement() {
+    return ['empty']
+  },
+  BlockStatement(body) {
+    return ['block', body]
+  },
+  ExpressionStatement(expression) {
+    return ['expression', expression]
+  },
+  NumericLiteral(value) {
+    return ['NumericLiteral', value]
+  },
+  StringLiteral(value) {
+    return ['StringLiteral', value]
+  },
+}
+const AST_MODE = 'default'
+const factory = AST_MODE === 'default' ? DefaultFactory : SExpressionFactory
 /**
  * Letter parser
  */
@@ -37,10 +104,7 @@ class Parser {
    *  : StatementList
    */
   program() {
-    return {
-      type: 'Program',
-      body: this.StatementList(),
-    }
+    return factory.Program(this.StatementList())
   }
 
   /**
@@ -76,9 +140,7 @@ class Parser {
 
   EmptyStatement(): EmptyStatement {
     this._eat(';')
-    return {
-      type: 'EmptyStatement',
-    }
+    return factory.EmptyStatement() as any
   }
 
   /**
@@ -90,10 +152,7 @@ class Parser {
     // 通过传入"}"提供结束的标记
     const body = this._lookahead.type === '}' ? [] : this.StatementList('}')
     this._eat('}')
-    return {
-      type: 'BlockStatement',
-      body,
-    } as any
+    return factory.BlockStatement(body) as any
   }
 
   /**
@@ -103,10 +162,7 @@ class Parser {
   ExpressionStatement(): ExpressionStatement {
     const expression = this.Expression() as any
     this._eat(';')
-    return {
-      type: 'ExpressionStatement',
-      expression,
-    }
+    return factory.ExpressionStatement(expression) as any
   }
 
   /**
@@ -140,18 +196,12 @@ class Parser {
    */
   NumericLiteral(): NumericLiteral {
     const token = this._eat('number')
-    return {
-      type: 'NumericLiteral',
-      value: Number(token.value),
-    }
+    return factory.NumericLiteral(Number(token.value)) as any
   }
 
   StringLiteral(): StringLiteral {
     const token = this._eat('string')
-    return {
-      type: 'StringLiteral',
-      value: token.value,
-    }
+    return factory.StringLiteral(token.value) as any
   }
 
   private _eat(tokenType: string) {
