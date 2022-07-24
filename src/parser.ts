@@ -1,13 +1,13 @@
 import type {
+  BinaryExpression,
   BlockStatement,
   EmptyStatement,
   ExpressionStatement,
   NumericLiteral,
   StringLiteral,
 } from '@babel/types'
-import {
-  blockStatement,
-} from '@babel/types'
+import { blockStatement } from '@babel/types'
+import { LiteralExpression } from 'typescript'
 import { Tokenizer } from './tokenizer'
 
 /**
@@ -170,7 +170,70 @@ class Parser {
    * : Literal
    */
   Expression() {
-    return this.Literal()
+    return this.AdditiveExpression()
+  }
+
+  /**
+   * AdditiveExpression
+   * :Literal
+   * | MultiplicativeExpression
+   * :AdditiveExpression '+' Literal
+   * :AdditiveExpression '-' Literal
+   *
+   */
+  AdditiveExpression() {
+    return this._BinaryExpression(
+      'MultiplicativeExpression',
+      'ADDITIVE_OPERATOR',
+    )
+  }
+
+  MultiplicativeExpression() {
+    return this._BinaryExpression(
+      'PrimaryExpression',
+      'MULTIPLICATIVE_OPERATOR',
+    )
+  }
+
+  _BinaryExpression(
+    builderName: 'PrimaryExpression' | 'MultiplicativeExpression',
+    operatorType: string,
+  ): any {
+    let left = this[builderName]()
+
+    while (this._lookahead.type === operatorType) {
+      // Operator: + - * /
+      const operator = this._eat(operatorType)
+
+      const right = this[builderName]()
+      left = {
+        type: 'BinaryExpression',
+        left,
+        operator: operator.value,
+        right,
+      } as BinaryExpression as any
+    }
+    return left
+  }
+
+  PrimaryExpression() {
+    switch (this._lookahead.type) {
+      case '(':
+        return this.ParenExpression()
+      default:
+        return this.Literal()
+    }
+  }
+
+  /**
+   * ParenthesizedExpression
+   * : '(' Expression ')'
+   */
+  ParenExpression() {
+    this._eat('(')
+    const expression = this.Expression() as any
+    this._eat(')')
+    return expression
   }
 
   /**
