@@ -3,11 +3,13 @@
  */
 const spec = {
   // SKIP token
-  whitespace: [/^\s+/],
-  comments: [/^\/\/[^\r\n]*/, /^\/\*[\s\S]*?(?:\*\/|$)/],
-  number: [/^\d+/],
-  string: [/^"[^"]*"/, /^'[^']*'/],
-  semicolon: [/^;/],
+  'whitespace': [/^\s+/],
+  'comments': [/^\/\/[^\r\n]*/, /^\/\*[\s\S]*?(?:\*\/|$)/],
+  'number': [/^\d+/],
+  'string': [/^"[^"]*"/, /^'[^']*'/],
+  ';': [/^;/],
+  '{': [/^\{/],
+  '}': [/^\}/],
 }
 
 export class Tokenizer {

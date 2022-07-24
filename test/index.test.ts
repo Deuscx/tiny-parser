@@ -73,4 +73,90 @@ describe('should', () => {
       }
     `)
   })
+
+  it('parse Block Statement', () => {
+    const parser = new Parser()
+    const program = `
+      {
+        100;
+        "hello";
+      }
+      {
+      }
+    `
+    expect(parser.parse(program)).toMatchInlineSnapshot(`
+      {
+        "body": [
+          {
+            "body": [
+              {
+                "expression": {
+                  "type": "NumericLiteral",
+                  "value": 100,
+                },
+                "type": "ExpressionStatement",
+              },
+              {
+                "expression": {
+                  "type": "StringLiteral",
+                  "value": "\\"hello\\"",
+                },
+                "type": "ExpressionStatement",
+              },
+            ],
+            "type": "BlockStatement",
+          },
+          {
+            "body": [],
+            "type": "BlockStatement",
+          },
+        ],
+        "type": "Program",
+      }
+    `)
+  })
+
+  it('parse nested Block Statement', () => {
+    const parser = new Parser()
+    const program = `
+      {
+        100;
+        {
+          "hello";
+        }
+      }
+      
+    `
+    expect(parser.parse(program)).toMatchInlineSnapshot(`
+      {
+        "body": [
+          {
+            "body": [
+              {
+                "expression": {
+                  "type": "NumericLiteral",
+                  "value": 100,
+                },
+                "type": "ExpressionStatement",
+              },
+              {
+                "body": [
+                  {
+                    "expression": {
+                      "type": "StringLiteral",
+                      "value": "\\"hello\\"",
+                    },
+                    "type": "ExpressionStatement",
+                  },
+                ],
+                "type": "BlockStatement",
+              },
+            ],
+            "type": "BlockStatement",
+          },
+        ],
+        "type": "Program",
+      }
+    `)
+  })
 })

@@ -1,4 +1,6 @@
 import type {
+  BlockStatement,
+  EmptyStatement,
   ExpressionStatement,
   NumericLiteral,
   StringLiteral,
@@ -47,9 +49,10 @@ class Parser {
    *  | Statement StatementList
    * @returns
    */
-  StatementList() {
+  StatementList(stopLookahead: string = null): any[] {
     const statements = []
-    while (this._lookahead !== null) statements.push(this.Statement())
+    while (this._lookahead !== null && stopLookahead !== this._lookahead.type)
+      statements.push(this.Statement())
 
     return statements
   }
@@ -57,10 +60,40 @@ class Parser {
   /**
    * Statement
    *  : ExpressionStatement
+   *  | BlockStatement
    *  ;
    */
   Statement() {
-    return this.ExpressionStatement()
+    switch (this._lookahead.type) {
+      case ';':
+        return this.EmptyStatement()
+      case '{':
+        return this.BlockStatement()
+      default:
+        return this.ExpressionStatement()
+    }
+  }
+
+  EmptyStatement(): EmptyStatement {
+    this._eat(';')
+    return {
+      type: 'EmptyStatement',
+    }
+  }
+
+  /**
+   * BlockStatement
+   *  : '{' OptStatementList '}'
+   */
+  BlockStatement(): BlockStatement {
+    this._eat('{')
+    // 通过传入"}"提供结束的标记
+    const body = this._lookahead.type === '}' ? [] : this.StatementList('}')
+    this._eat('}')
+    return {
+      type: 'BlockStatement',
+      body,
+    } as any
   }
 
   /**
@@ -69,7 +102,7 @@ class Parser {
    */
   ExpressionStatement(): ExpressionStatement {
     const expression = this.Expression() as any
-    this._eat('semicolon')
+    this._eat(';')
     return {
       type: 'ExpressionStatement',
       expression,
