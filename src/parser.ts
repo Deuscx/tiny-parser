@@ -14,7 +14,7 @@ import { Tokenizer } from './tokenizer'
  * Default AST node type.
  */
 const DefaultFactory = {
-  Program(body) {
+  Program(body: any) {
     return {
       type: 'Program',
       body,
@@ -25,25 +25,25 @@ const DefaultFactory = {
       type: 'EmptyStatement',
     }
   },
-  BlockStatement(body) {
+  BlockStatement(body: any) {
     return {
       type: 'BlockStatement',
       body,
     }
   },
-  ExpressionStatement(expression) {
+  ExpressionStatement(expression: any) {
     return {
       type: 'ExpressionStatement',
       expression,
     }
   },
-  NumericLiteral(value) {
+  NumericLiteral(value: any) {
     return {
       type: 'NumericLiteral',
       value,
     }
   },
-  StringLiteral(value) {
+  StringLiteral(value: any) {
     return {
       type: 'StringLiteral',
       value,
@@ -52,22 +52,22 @@ const DefaultFactory = {
 }
 
 const SExpressionFactory = {
-  Program(body) {
+  Program(body: any) {
     return ['begin', body]
   },
   EmptyStatement() {
     return ['empty']
   },
-  BlockStatement(body) {
+  BlockStatement(body: any) {
     return ['block', body]
   },
-  ExpressionStatement(expression) {
+  ExpressionStatement(expression: any) {
     return ['expression', expression]
   },
-  NumericLiteral(value) {
+  NumericLiteral(value: any) {
     return ['NumericLiteral', value]
   },
-  StringLiteral(value) {
+  StringLiteral(value: any) {
     return ['StringLiteral', value]
   },
 }
@@ -113,7 +113,7 @@ class Parser {
    *  | Statement StatementList
    * @returns
    */
-  StatementList(stopLookahead: string = null): any[] {
+  StatementList(stopLookahead: string | null = null): any[] {
     const statements = []
     while (this._lookahead !== null && stopLookahead !== this._lookahead.type)
       statements.push(this.Statement())
@@ -167,7 +167,7 @@ class Parser {
 
   /**
    * Expression
-   * : Literal
+   * : AdditiveExpression
    */
   Expression() {
     return this.AdditiveExpression()
@@ -176,7 +176,7 @@ class Parser {
   /**
    * AdditiveExpression
    * :Literal
-   * | MultiplicativeExpression
+   * | MultiplicativeExpression First
    * :AdditiveExpression '+' Literal
    * :AdditiveExpression '-' Literal
    *
@@ -197,7 +197,7 @@ class Parser {
 
   _BinaryExpression(
     builderName: 'PrimaryExpression' | 'MultiplicativeExpression',
-    operatorType: string,
+    operatorType: 'ADDITIVE_OPERATOR' | 'MULTIPLICATIVE_OPERATOR',
   ): any {
     let left = this[builderName]()
 
@@ -206,6 +206,7 @@ class Parser {
       const operator = this._eat(operatorType)
 
       const right = this[builderName]()
+      //
       left = {
         type: 'BinaryExpression',
         left,
